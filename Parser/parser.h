@@ -6,22 +6,35 @@
 #ifndef __PARSER_H__
 #define __PARSER_H__
 
-#include <string>
+#include <string> // Include the string header
+#include <set>
 #include "lexer.h"
-
+//Yosef Pineda CSE 340 :(
 class Parser {
   public:
+    
     void parse_input();
+    void parse_inputEnd();
+    void match(int **r, std::string s, int **p); // Use std::string and specify the namespace
+   
     void readAndPrintAllInput();
-  private:
+    
+    struct REG{
+    struct REG_node *start;
+    struct REG_node *accept;
+    };
+
+private:
+    
     LexicalAnalyzer lexer;
     void syntax_error();
     Token expect(TokenType expected_type);
     void parse_tokens_section();
     void parse_token_list();
     void parse_token();
-    void parse_expr();
+    //void parse_expr();
+     struct REG* parse_expr();
+    
 };
 
 #endif
-
