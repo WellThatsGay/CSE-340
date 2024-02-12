@@ -12,7 +12,7 @@
 #include <stack>
 #include <set>
 #include "parser.h"
-//Yosef Pineda CSE 340 :(
+// Christopher Harris
 
 
 using namespace std;
@@ -74,7 +74,7 @@ Parser:: REG * Parser::parse_expr() {
     switch (t.token_type) {
         case CHAR: {
 
-            expect(CHAR);
+            expect(CHAR,tokenRecent);
 
             REG_node * charStart = new REG_node;
             REG_node * charEnd = new REG_node;
@@ -135,7 +135,7 @@ else if (t2.token_type == STAR) {
             break;
         }
         case UNDERSCORE:{
-            expect(UNDERSCORE);
+            expect(UNDERSCORE,tokenRecent);
             // Handle epsilon case
             REG_node * charStart = new REG_node;
             REG_node * charEnd = new REG_node;

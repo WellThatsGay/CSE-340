@@ -16,7 +16,7 @@ class Parser {
     void parse_input();
     void parse_inputEnd();
     void match(int **r, std::string s, int **p); // Use std::string and specify the namespace
-   
+    Token tokenRecent();
     void readAndPrintAllInput();
     
     struct REG{
@@ -28,7 +28,7 @@ private:
     
     LexicalAnalyzer lexer;
     void syntax_error();
-    Token expect(TokenType expected_type);
+    Token expect(TokenType expected_type, recentToken);
     void parse_tokens_section();
     void parse_token_list();
     void parse_token();
