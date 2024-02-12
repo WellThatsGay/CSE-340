@@ -13,7 +13,7 @@
 #include <set>
 #include "parser.h"
 // Christopher Harris
-
+// CSE 340
 
 using namespace std;
 
@@ -54,7 +54,7 @@ void Parser::syntax_error()
 // Written by Mohsen Zohrevandi
 
 //THIS FUNCTION NEED TO BE MODIFIED
-Token Parser::expect(TokenType expected_type)
+Token Parser::expect(TokenType expected_type, Token tokenRecent)
 {
     Token t = lexer.GetToken();
     if (t.token_type != expected_type)
@@ -85,6 +85,17 @@ Parser:: REG * Parser::parse_expr() {
             // construct REG for a
             // return REG for a
             // Handle CHAR case
+            break;
+        }
+        case UNDERSCORE:{
+            expect(UNDERSCORE,tokenRecent);
+            // Handle epsilon case
+            REG_node * charStart = new REG_node;
+            REG_node * charEnd = new REG_node;
+            charStart->first_neighbor = charEnd;
+            charStart->first_label = t.lexeme[CHAR];
+            expression->start = charStart;
+            expression->accept = charEnd;
             break;
         }
         case LPAREN: {
@@ -134,17 +145,7 @@ else if (t2.token_type == STAR) {
             }
             break;
         }
-        case UNDERSCORE:{
-            expect(UNDERSCORE,tokenRecent);
-            // Handle epsilon case
-            REG_node * charStart = new REG_node;
-            REG_node * charEnd = new REG_node;
-            charStart->first_neighbor = charEnd;
-            charStart->first_label = t.lexeme[CHAR];
-            expression->start = charStart;
-            expression->accept = charEnd;
-            break;
-        }
+        
         default: {
             syntax_error();
         }
