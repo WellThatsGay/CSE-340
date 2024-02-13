@@ -1,60 +1,45 @@
-/*
- * Copyright (C) Rida Bazzi, 2020
- *
- * Do not share this file with anyone
- *
- * Do not post this file or derivatives of
- * of this file online
- *
- */
+// Christopher Harris 
+// CSE 340
+
 #include <iostream>
 #include <cstdlib>
 #include <stack>
 #include <set>
 #include "parser.h"
-// Christopher Harris
-// CSE 340
+
+
 
 using namespace std;
 
-//Declaration of the REG data structure
-struct REG_node{
-    struct REG_node *first_neighbor; //first_neighbor is the first node pointed to by a REG node
-    char first_label;
-    struct REG_node *second_neighbor;//second_neighbor is the second node pointed to by a REG node
-    char second_label;
-};
-//The REG graph itself is represented as a structure with two pointers to two REG nodes:
+using namespace std;
 
-/*The first pointer points to the (unique) start node and the second pointer points to the (unique)
-accept node. Later, when we discuss the match() function, we will explain what these nodes are
-used for.
-*/
-struct REG{
-    struct REG_node *start;
-    struct REG_node *accept;
-};
+// Define static members
+std::vector <std::string> Parser::semanticError;
+std::vector<Token> Parser::tokenList;
 
-// this syntax error function needs to be 
-// modified to produce the appropriate message
+// Function to handle syntax errors
 void Parser::syntax_error()
 {
-
-    //OUTSIDE EXPRESSION: 
-    //INSIDE EXPRESSION: WE NEED TO RETURN WHERE THE ERROR OCURR
-    cout << "SYNTAX ERROR\n";
+    cout << "SNYTAX ERORR\n";
     exit(1);
 }
 
-// this function gets a token and checks if it is
-// of the expected type. If it is, the token is
-// returned, otherwise, synatx_error() is generated
-// this function is particularly useful to match
-// terminals in a right hand side of a rule.
-// Written by Mohsen Zohrevandi
+// Function to handle syntax errors with a specific message
+void Parser::syntax_error(string tokenRecent_lexeme)
+{
+    cout << tokenRecent_lexeme << " HAS A SYNTAX ERROR IN ITS EXPRESSION\n";
+    exit(1);
+}
 
-//THIS FUNCTION NEED TO BE MODIFIED
-Token Parser::expect(TokenType expected_type, Token tokenRecent)
+void Parser::syntax_errorEpsilon(string tokenRecent_lexemeEpsilon)
+{
+    
+    cout << "EPSILON IS NOOOOOOOT A TOKEN !!! " << tokenRecent_lexemeEpsilon << endl;
+    exit(1);
+}
+
+// Function to check if the next token is of the expected type
+Token Parser::expect(TokenType expected_type)
 {
     Token t = lexer.GetToken();
     if (t.token_type != expected_type)
@@ -62,186 +47,242 @@ Token Parser::expect(TokenType expected_type, Token tokenRecent)
     return t;
 }
 
-REG_node *node1 = new REG_node(); //Declaring a new node for the REG graph
-REG_node* node2 = new REG_node();// Create a new node for the second expression
+// Function to check if the next token is of the expected type and lexeme
+Token Parser::expect(TokenType expected_type,string tokenRecent)
+{
+    Token t = lexer.GetToken();
+    if (t.token_type != expected_type)
+        syntax_error(tokenRecent);
+    return t;
+}
 
+// Creating the Regular Expression Graph REG
+Parser::REG* Parser::creationREG(char label)
+{
+    // Create start and accept nodes
+    REG_node* start = new REG_node();
+    REG_node* accept = new REG_node(nullptr, '_');
 
+    // Create a transition from start to accept with the given label
+    start->first_neighbor = accept;
+    start->first_label = label;
 
+    // Return the new REG object
+    return new REG(start, accept);
+}
 
-Parser:: REG * Parser::parse_expr() {
+// Function to apply the Kleene star operation to a regular expression
+Parser::REG* Parser::KleeneREG(Parser::REG* R_itself)
+{
+    REG_node* start = new REG_node(R_itself->start, '_', nullptr, '_');
+    REG_node* accept = new REG_node();
+
+    // Connect new start and accept nodes, and loop from old accept to old start
+    start->second_neighbor = accept;
+    R_itself->accept->first_neighbor = accept;
+    R_itself->accept->second_neighbor = R_itself->start;
+    R_itself->accept->second_label = '_';
+
+    // Return the new REG object
+    return new REG(start, accept);
+}
+
+//Creation of the union
+Parser::REG* Parser::dotREG(Parser::REG* R1, Parser::REG* R2)
+{
+			    
+  R1->accept->first_neighbor = R2->start;
+  R1->accept->first_label = '_';
+  REG* r = new REG(R1->start, R2->accept);
+
+  return r;
+}
+
+// Function to create a union of two regular expressions
+Parser::REG* Parser::unionREG(Parser::REG* R1_union, Parser::REG* R2_union)
+{
+    // Create new start node with transitions to the start nodes of the input REGs
+    REG_node* start = new REG_node(R1_union->start, '_', R2_union->start, '_');
+
+    // Create new accept node
+    REG_node* accept = new REG_node();
+
+    // Connect the accept nodes of the input REGs to the new accept node
+    R1_union->accept->first_neighbor = accept;
+    R1_union->accept->first_label = '_';
+    R2_union->accept->first_neighbor = accept;
+    R2_union->accept->first_label = '_';
+
+    // Return the new REG object
+    return new REG(start, accept);
+}
+
+//Implementation of the parse_expr function
+
+Parser::REG* Parser::parse_expr(string tokenPrevious){
+    
     Token t = lexer.peek(1);
-    REG * expression = new REG;
-    switch (t.token_type) {
-        case CHAR: {
 
-            expect(CHAR,tokenRecent);
+    REG* REGEXPR1; 
+    REG* REGEXPR2; 
 
-            REG_node * charStart = new REG_node;
-            REG_node * charEnd = new REG_node;
-            charStart->first_neighbor = charEnd;
-            charStart->first_label = t.lexeme[CHAR];
-            expression->start = charStart;
-            expression->accept = charEnd;
-            // construct REG for a
-            // return REG for a
-            // Handle CHAR case
-            break;
-        }
-        case UNDERSCORE:{
-            expect(UNDERSCORE,tokenRecent);
-            // Handle epsilon case
-            REG_node * charStart = new REG_node;
-            REG_node * charEnd = new REG_node;
-            charStart->first_neighbor = charEnd;
-            charStart->first_label = t.lexeme[CHAR];
-            expression->start = charStart;
-            expression->accept = charEnd;
-            break;
-        }
-        case LPAREN: {
-            expect(LPAREN);
-            REG* expressionLparen = parse_expr();
-            expect(RPAREN);
-            Token t2 = lexer.peek(1);
-            if (t2.token_type == DOT) {
-                expect(DOT);  // Consume DOT
-                // reg for dot
-                expect(LPAREN);
-                REG * expressionNext = parse_expr();
-                expressionLparen->accept->first_neighbor = expressionNext->start;
-                expression->start = expressionLparen->start;
-                expression->accept = expressionNext->accept;
-                expect(RPAREN);
-            }
-             else if (t2.token_type == OR) {
-                expect(OR); // Consume OR
-                // reg for or
-                expect(LPAREN);
-                REG * expressionNext = parse_expr();
-                REG_node * startNode = new REG_node;
-                REG_node * acceptNode = new REG_node;
-                startNode->first_neighbor = expressionLparen->start;
-                startNode->second_neighbor = expressionNext->start;
-                expressionLparen->accept->first_neighbor = acceptNode;
-                expressionNext->accept->first_neighbor = acceptNode;
-                expression->start = startNode;
-                expression->accept = acceptNode;
-                expect(RPAREN);
-            }
-else if (t2.token_type == STAR) {
-                expect(STAR); // Consume STAR
-                REG_node * startNode = new REG_node;
-                expression->start = startNode;
-                REG_node * node = new REG_node;
-                expression->accept = node;
-                expression->start->first_neighbor = expression->accept;
-                expression->start->second_neighbor = expressionLparen->start;
-                expressionLparen->accept->second_neighbor = expressionLparen->start;
-                expressionLparen->accept->first_neighbor = expression->accept;
+    Token tt;
+    switch(t.token_type) {
+        case CHAR: //Base case where we encounter a character
+            expect(CHAR,tokenPrevious);
+            return creationREG(t.lexeme[0]);
 
-                //reg for dot
-            } else {
-                syntax_error();
+        case UNDERSCORE: //Second base case where we encounter an underscore
+            expect(UNDERSCORE,tokenPrevious);
+            return creationREG('_');
+
+        case LPAREN: //Third base case where we encounter a left parenthesis
+            expect(LPAREN,tokenPrevious);
+            REGEXPR1 = parse_expr(tokenPrevious);
+            expect(RPAREN,tokenPrevious);
+            tt = lexer.peek(1);
+
+            switch(tt.token_type) {
+                case DOT:
+                    expect(DOT,tokenPrevious);
+                    expect(LPAREN,tokenPrevious);
+                    REGEXPR2 = parse_expr(tokenPrevious);
+                    expect(RPAREN,tokenPrevious);
+                    return dotREG(REGEXPR1,REGEXPR2);
+
+                case OR: // Handle OR operator
+                    expect(OR,tokenPrevious);
+                    expect(LPAREN,tokenPrevious);
+                    REGEXPR2 = parse_expr(tokenPrevious);
+                    expect(RPAREN,tokenPrevious);
+                    return unionREG(REGEXPR1,REGEXPR2); //Return the union of the two expressions
+
+                case STAR:
+                    expect(STAR,tokenPrevious);
+                    return KleeneREG(REGEXPR1);
+
+                default:
+                    syntax_error(tokenPrevious);
             }
             break;
-        }
-        
-        default: {
-            syntax_error();
+
+        default:
+            syntax_error(tokenPrevious);
+    }
+
+    return nullptr;
+}
+// Function to parse a single token
+void Parser::parse_token() {
+    // Expect an ID token and store it in lastToken
+    Token lastToken = expect(ID);
+
+    // Flag to check if the token already exists in the tokenList
+    bool tokenExists = false;
+
+    // Iterate over the tokenList
+    for (std::vector<Token>::size_type i = 0; i < tokenList.size(); i++) {
+        // If the token already exists in the tokenList, set the flag to true and record an error
+        if (tokenList[i].lexeme == lastToken.lexeme) {
+            semanticError.push_back("Line " + to_string(lastToken.line_no) + ": " + lastToken.lexeme + " already declared on line " + to_string(tokenList[i].line_no));
+            tokenExists = true;
         }
     }
-    return expression;
 
+    // If the token doesn't exist in the tokenList, add it
+    if (!tokenExists) {
+        tokenList.push_back(lastToken);
+    }
+
+    
+    parse_expr(lastToken.lexeme);
 }
 
-//THE CODE BELOW IS BASED ON THE VIDEO FROM THE LECTURE
-void Parser::parse_token()
-{
-   //token -> ID expression "This is the form by new token"
-  Token mostRecentToken=expect(ID); //Id : expression
-
-  // parse_expr(mostRecentToken.lexeme);
-}
-//THE CODE BELOW IS BASED ON THE VIDEO FROM THE LECTURE
+// Function to parse a list of tokens
 void Parser::parse_token_list()
 {
-    //token_list --> token
-    //token_list --> token COMMA token_list
+    
     parse_token();
     Token t = lexer.peek(1);
 
+    // If the next token is a comma, expect a comma and recursively parse the rest of the list
     if(t.token_type == COMMA){
         expect(COMMA);
-        //lexer.GetToken();
         parse_token_list();
-    }else if(t.token_type == HASH){
+    }
+    // If the next token is a hash, return as we've reached the end of the list
+    else if(t.token_type == HASH){
         return;
-    }else{
+    }
+    
+    else{
         syntax_error();
     }
-
-    
 }
 
-//THE CODE BELOW IS BASED ON THE VIDEO FROM THE LECTURE
+
+// Function to parse the tokens section
 void Parser::parse_tokens_section()
 {
-    //token_segment is equal to token_list HASH
+    // Parse the list of tokens and expect a HASH token at the end
     parse_token_list();
     expect(HASH);
 }
-//THE CODE BELOW IS BASED ON THE VIDEO FROM THE LECTURE
-void Parser::parse_input()
-{
-    //The input is gonna be the token section INPUT_TEXT
-    parse_tokens_section();
-    expect(INPUT_TEXT);
-    REG* parse_expr();// Parse expression after input text
-    
+
+// Function to parse the entire input
+void Parser::parse_Input(){
+    // Parse the input and expect an END_OF_FILE token at the end
+    parse_input();
+    expect(END_OF_FILE);
 }
 
-//BASED ON THE VIDEO FROM THE LECTURE
+// Function to parse the input
+void Parser::parse_input()
+{
+    // Parse the tokens section and expect an INPUT_TEXT token
+    parse_tokens_section();
+    expect(INPUT_TEXT);
+}
+
+// Function to parse the end of the input
 void Parser::parse_inputEnd(){
+    // Parse an expression and expect an END_OF_FILE token at the end
     REG* parse_expr();
     expect(END_OF_FILE);
 }
-/*void Parser::match(int**r,string s, int** p){ //Could be wrong
 
-}*/
-
-// This function simply reads and prints all tokens
-// I included it as an example. You should compile the provided code
-// as it is and then run ./a.out < tests/test0.txt to see what this function does
-// This function is not needed for your solution and it is only provided to
-// illustrate the basic functionality of getToken() and the Token type.
-
+// Function to read and print all input tokens
 void Parser::readAndPrintAllInput()
 {
     Token t;
 
-    // get a token
+    // Get the first token
     t = lexer.GetToken();
 
-    // while end of input is not reached
+    // Loop until the end of the input is reached
     while (t.token_type != END_OF_FILE) 
     {
-        t.Print();         	// pringt token
-        t = lexer.GetToken();	// and get another one
+        // Print the current token
+        t.Print();
+        // Get the next token
+        t = lexer.GetToken();
     }
-        
-    // note that you should use END_OF_FILE and not EOF
 }
 
+// Main function
 int main()
 {
-    // note: the parser class has a lexer object instantiated in it (see file
-    // parser.h). You should not be declaring a separate lexer object. 
-    // You can access the lexer object in the parser functions as shown in 
-    // the example  method Parser::readAndPrintAllInput()
-    // If you declare another lexer object, lexical analysis will 
-    // not work correctly
+    // Create a Parser object
     Parser parser;
-
+    
+    // Parse the input
+    parser.parse_Input();
+    
+    // Print any semantic errors
+    for (const std::string& error : Parser::semanticError) {
+        std::cout << error << std::endl;
+    }
+    
+    // Read and print all input tokens
     parser.readAndPrintAllInput();
-	
 }
