@@ -1,0 +1,12 @@
+SCALAR x y z
+ ARRAY a b c
+ {
+ x = 1;
+ y = 2;
+ z = 3;
+ a[x] = x;
+ a[y] = a[a[a[x]]] + 2;
+ b[x] = a[x]+a[a[x]+a[a[y]]-1];
+ b[x] = a[x]+a[a[x]+a[a[y]]-1];
+ b[x] = a[x]+a[a[x]+a[a[y]]-1];
+ }

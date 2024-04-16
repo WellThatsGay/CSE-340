@@ -1,0 +1,26 @@
+TO compile:
+g++ -std=c++11 -Wall *.cc
+
+To execute
+chmod +x test_p2.sh
+
+To test specific test
+
+./a.out 1 < tests/t1.txt
+
+Commands for Github
+
+Command to see a list:
+ls
+
+Command to check git status:
+git status
+
+Command to add:
+git add <filename>
+ 
+Command to commit:
+git commit -m "text"
+
+Command to push:
+git push
