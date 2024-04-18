@@ -1,0 +1,24 @@
+/workspaces/CSE-340/Project_3_Complete
+
+g++ -g -std=c++11 inputbuf.cc lexer.cc  execute.cc main.cc
+
+chmod +x test1.sh
+
+./test1.sh
+
+Commands for Github
+
+Command to see a list:
+ls
+
+Command to check git status:
+git status
+
+Command to add:
+git add <filename>
+ 
+Command to commit:
+git commit -m "text"
+
+Command to push:
+git push
