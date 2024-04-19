@@ -48,12 +48,12 @@ struct InstructionNode
         struct
         {
             int left_hand_side_index;
-            int operand1_index;
-            int operand2_index;
+            int opernd1_index;
+            int opernd2_index;
             
             /*
-             * If op == OPERATOR_NONE then only operand1 is meaningful.
-             * Otherwise both operands are meaningful
+             * If op == OPERATOR_NONE then only opernd1 is meaningful.
+             * Otherwise both opernds are meaningful
              */
             ArithmeticOperatorType op;
         } assign_inst;
@@ -70,8 +70,8 @@ struct InstructionNode
         
         struct {
             ConditionalOperatorType condition_op;
-            int operand1_index;
-            int operand2_index;
+            int opernd1_index;
+            int opernd2_index;
             struct InstructionNode * target;
         } cjmp_inst;
         
@@ -89,7 +89,7 @@ void debug(const char* format, ...);
 //---------------------------------------------------------
 // You should write the following function:
 
-struct InstructionNode * parse_generate_intermediate_representation();
+struct InstructionNode * parse_Generate_Intermediate_Representation();
 
 /*
   NOTE:

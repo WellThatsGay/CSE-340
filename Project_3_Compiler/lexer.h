@@ -34,18 +34,19 @@ class Token {
 class LexicalAnalyzer {
   public:
     Token GetToken();
-    TokenType UngetToken(Token);
+    Token peek(int);
     LexicalAnalyzer();
 
   private:
-    std::vector<Token> tokens;
+    std::vector<Token> tokenList;
+    Token GetTokenMain();
     int line_no;
+    int index;
     Token tmp;
     InputBuffer input;
 
     bool SkipSpace();
-    bool IsKeyword(std::string);
-    TokenType FindKeywordIndex(std::string);
+    int FindKeywordIndex(std::string);
     Token ScanIdOrKeyword();
     Token ScanNumber();
 };

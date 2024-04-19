@@ -1,7 +1,8 @@
 #include <iostream>
 #include "parser.h"
+#include "lexer.h"
 
-/* Christopher Harris*/
+/*Christopher Harris*/
 
 using namespace std;
 
@@ -17,18 +18,12 @@ Token Parser::expect(TokenType expected_type){
 	return t;
 }
 
-Token Parser::peek(){
-	Token t = lexer.GetToken();
-	lexer.UngetToken(t);
-	return t;
-}
-
 void Parser::parse_program() {
 	parse_var_sction();
 	parse_body();
 	parse_inputs();
 
-	if (peek().token_type != END_OF_FILE)
+	if (lexer.peek(1).token_type != END_OF_FILE)
 		syntax_error();
 }
 
@@ -45,7 +40,7 @@ void Parser::parse_id_list() {
 	if (t.token_type != ID)
 		syntax_error();
 
-	if (peek().token_type == COMMA) {
+	if (lexer.peek(1).token_type == COMMA) {
 		t = lexer.GetToken();
 		parse_id_list();
 	}
@@ -53,46 +48,50 @@ void Parser::parse_id_list() {
 
 void Parser::parse_body() {
 	Token t = lexer.GetToken();
-	if (t.token_type != LBRACE)
-		syntax_error();
+	// if (t.token_type != LBRACE)
+	// 	syntax_error();
 
+	// parse_stmt_list();
+
+	// t = lexer.GetToken();
+	// if (t.token_type != RBRACE)
+	// 	syntax_error();
+	expect(LBRACE);
 	parse_stmt_list();
-
 	t = lexer.GetToken();
-	if (t.token_type != RBRACE)
-		syntax_error();
+	expect(RBRACE);
 }
 
 void Parser::parse_stmt_list() {
 
 	parse_stmt();
 
-	Token t = peek();
+	Token t = lexer.peek(1);
 	if (t.token_type == ID || t.token_type == WHILE || t.token_type == IF || t.token_type == SWITCH || t.token_type == FOR || t.token_type == OUTPUT || t.token_type == INPUT)
 		parse_stmt_list();
 }
 
 void Parser::parse_stmt() {
-	if (peek().token_type == ID)
+	if (lexer.peek(1).token_type == ID)
 		parse_assign_stmt();
-	else if (peek().token_type == WHILE)
+	else if (lexer.peek(1).token_type == WHILE)
 		parse_while_stmt();
-	else if (peek().token_type == IF)
+	else if (lexer.peek(1).token_type == IF)
 		parse_if_stmt();
-	else if (peek().token_type == SWITCH)
+	else if (lexer.peek(1).token_type == SWITCH)
 		parse_switch_stmt();
-	else if (peek().token_type == FOR)
+	else if (lexer.peek(1).token_type == FOR)
 		parse_for_stmt();
-	else if (peek().token_type == OUTPUT)
+	else if (lexer.peek(1).token_type == OUTPUT)
 		parse_output_stmt();
-	else if (peek().token_type == INPUT)
+	else if (lexer.peek(1).token_type == INPUT)
 		parse_input_stmt();
 	else
 		syntax_error();
 }
 
 void Parser::parse_assign_stmt() {
-	Token t = lexer.GetToken();
+	Token t = lexer.peek(1);
 	if (t.token_type != ID)
 		syntax_error();
 
@@ -101,12 +100,12 @@ void Parser::parse_assign_stmt() {
 		syntax_error();
 
 	t = lexer.GetToken();
-	if (peek().token_type == PLUS || peek().token_type == MINUS || peek().token_type == MULT || peek().token_type == DIV)
+	if (lexer.peek(1).token_type == PLUS || lexer.peek(1).token_type == MINUS || lexer.peek(1).token_type == MULT || lexer.peek(1).token_type == DIV)
 	{
-		lexer.UngetToken(t);
+		
 		parse_expr();
 	}else{
-		lexer.UngetToken(t);
+		
 		parse_primary();
 	}
 
@@ -216,7 +215,7 @@ void Parser::parse_switch_stmt() {
 
 	parse_case();
 
-	if (peek().token_type == DEFAULT)
+	if (lexer.peek(1).token_type == DEFAULT)
 		parse_default_case();
 
 	t = lexer.GetToken();
@@ -252,7 +251,7 @@ void Parser::parse_for_stmt() {
 void Parser::parse_case_list() {
 	parse_case();
 
-	if (peek().token_type == CASE)
+	if (lexer.peek(1).token_type == CASE)
 		parse_case_list();
 }
 
@@ -293,6 +292,6 @@ void Parser::parse_num_list() {
 	if (t.token_type != NUM)
 		syntax_error();
 
-	if (peek().token_type == NUM)
+	if (lexer.peek(1).token_type == NUM)
 		parse_num_list();
 }

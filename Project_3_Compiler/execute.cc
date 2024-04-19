@@ -1,5 +1,5 @@
 /*
- * Copyright (C) Rida Bazzi, 2017
+ * Copyright (C) Rida Bazzi, 2017-2022
  *
  * Do not share this file with anyone
  */
@@ -11,9 +11,10 @@
 #include <string>
 #include "execute.h"
 
+
 using namespace std;
 
-#define DEBUG 1     // 1 => Turn ON debugging, 0 => Turn OFF debugging
+#define DEBUG 0     // 1 => Turn ON debugging, 0 => Turn OFF debugging
 
 int mem[1000];
 int next_available = 0;
@@ -52,33 +53,34 @@ void execute_program(struct InstructionNode * program)
                 break;
             case OUT:
                 printf("%d ", mem[pc->output_inst.var_index]);
+		fflush(stdin);
                 pc = pc->next;
                 break;
             case ASSIGN:
                 switch(pc->assign_inst.op)
                 {
                     case OPERATOR_PLUS:
-                        op1 = mem[pc->assign_inst.operand1_index];
-                        op2 = mem[pc->assign_inst.operand2_index];
+                        op1 = mem[pc->assign_inst.opernd1_index];
+                        op2 = mem[pc->assign_inst.opernd2_index];
                         result = op1 + op2;
                         break;
                     case OPERATOR_MINUS:
-                        op1 = mem[pc->assign_inst.operand1_index];
-                        op2 = mem[pc->assign_inst.operand2_index];
+                        op1 = mem[pc->assign_inst.opernd1_index];
+                        op2 = mem[pc->assign_inst.opernd2_index];
                         result = op1 - op2;
                         break;
                     case OPERATOR_MULT:
-                        op1 = mem[pc->assign_inst.operand1_index];
-                        op2 = mem[pc->assign_inst.operand2_index];
+                        op1 = mem[pc->assign_inst.opernd1_index];
+                        op2 = mem[pc->assign_inst.opernd2_index];
                         result = op1 * op2;
                         break;
                     case OPERATOR_DIV:
-                        op1 = mem[pc->assign_inst.operand1_index];
-                        op2 = mem[pc->assign_inst.operand2_index];
+                        op1 = mem[pc->assign_inst.opernd1_index];
+                        op2 = mem[pc->assign_inst.opernd2_index];
                         result = op1 / op2;
                         break;
                     case OPERATOR_NONE:
-                        op1 = mem[pc->assign_inst.operand1_index];
+                        op1 = mem[pc->assign_inst.opernd1_index];
                         result = op1;
                         break;
                 }
@@ -91,8 +93,8 @@ void execute_program(struct InstructionNode * program)
                     debug("Error: pc->cjmp_inst->target is null.\n");
                     exit(1);
                 }
-                op1 = mem[pc->cjmp_inst.operand1_index];
-                op2 = mem[pc->cjmp_inst.operand2_index];
+                op1 = mem[pc->cjmp_inst.opernd1_index];
+                op2 = mem[pc->cjmp_inst.opernd2_index];
                 switch(pc->cjmp_inst.condition_op)
                 {
                     case CONDITION_GREATER:
@@ -135,7 +137,7 @@ void execute_program(struct InstructionNode * program)
 int main()
 {
     struct InstructionNode * program;
-    program = parse_generate_intermediate_representation();
+    program = parse_Generate_Intermediate_Representation();
     execute_program(program);
     return 0;
 }
