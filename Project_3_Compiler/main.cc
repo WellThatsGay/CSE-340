@@ -5,97 +5,119 @@
 
 /* Christopher Harris*/
 
+// Create an instance of LexicalAnalyzer named lexer
 LexicalAnalyzer lexer;
+
 using namespace std;
 
+// Declare a vector of strings named table
 vector<string> table;
 
+// Forward declaration of parse_body function
 struct InstructionNode * parse_body();
 
-
+// Function to find the location of a string in the table
 int location(string str) {
-	for (int i = 0; i < table.size(); i++) {
-		if (table[i] == str)
-			return i;
-	}
+    for (int i = 0; i < table.size(); i++) {
+        if (table[i] == str)
+            return i;
+    }
 }
 
+// Function to parse identifiers and add them to the table
 void parse_id_list() {
-	Token t = lexer.GetToken();
+    Token t = lexer.GetToken();
 
-	while (t.token_type != SEMICOLON) {
-
-		table.push_back(t.lexeme);
-		mem[location(t.lexeme)] = 0;
-		t = lexer.GetToken();
-
-	}
-
+    // Loop until a SEMICOLON token is found
+    while (t.token_type != SEMICOLON) {
+        table.push_back(t.lexeme);
+        mem[location(t.lexeme)] = 0;
+        t = lexer.GetToken();
+    }
 }
 
+// Function to parse assignment statements
 struct InstructionNode * parse_assign_stmt() {
-	struct InstructionNode * instruction = new InstructionNode;
-	instruction->next = NULL;
+    // Create a new InstructionNode and initialize its next pointer to NULL
+    struct InstructionNode * instruction = new InstructionNode;
+    instruction->next = NULL;
 
-	Token t = lexer.GetToken();
-	if (t.token_type == ID) {
-		instruction->type = ASSIGN;
-		instruction->assign_inst.left_hand_side_index = location(t.lexeme);
-	}
+    // Get the first token from the lexer
+    Token t = lexer.GetToken();
 
-	t = lexer.GetToken();
-	if (t.token_type == EQUAL) {
-		t = lexer.GetToken();
+    // If the token is an ID, set the type of the instruction to ASSIGN and set the left_hand_side_index
+    if (t.token_type == ID) {
+        instruction->type = ASSIGN;
+        instruction->assign_inst.left_hand_side_index = location(t.lexeme);
+    }
 
-		switch (t.token_type)
-		{
-		case ID:
-			instruction->assign_inst.operand1_index = location(t.lexeme);
-			break;
-		case NUM:
-			if (find(table.begin(), table.end(), t.lexeme) == table.end()) {
-				table.push_back(t.lexeme);
-				mem[location(t.lexeme)] = stoi(t.lexeme);
-			}
+    // Get the next token
+    t = lexer.GetToken();
 
-			instruction->assign_inst.operand1_index = location(t.lexeme);
-			break;
-		}
+    // If the token is EQUAL, process the right hand side of the assignment
+    if (t.token_type == EQUAL) {
+        t = lexer.GetToken();
 
-		t = lexer.GetToken();
-		if (t.token_type == SEMICOLON) {
-			instruction->assign_inst.op = OPERATOR_NONE;
-			instruction->assign_inst.operand2_index = NULL;
-		}
-		else {
-			if (t.token_type == PLUS)
-				instruction->assign_inst.op = OPERATOR_PLUS;
-			else if (t.token_type == MINUS)
-				instruction->assign_inst.op = OPERATOR_MINUS;
-			else if (t.token_type == MULT)
-				instruction->assign_inst.op = OPERATOR_MULT;
-			else if (t.token_type == DIV)
-				instruction->assign_inst.op = OPERATOR_DIV;
+        // Depending on the type of the token, set the operand1_index
+        switch (t.token_type)
+        {
+        case ID:
+            instruction->assign_inst.operand1_index = location(t.lexeme);
+            break;
+        case NUM:
+            // If the lexeme is not in the table, add it and initialize its memory location
+            if (find(table.begin(), table.end(), t.lexeme) == table.end()) {
+                table.push_back(t.lexeme);
+                mem[location(t.lexeme)] = stoi(t.lexeme);
+            }
 
-			t = lexer.GetToken();
-			switch (t.token_type)
-			{
-			case ID:
-				instruction->assign_inst.operand2_index = location(t.lexeme);
-				break;
-			case NUM:
-				if (find(table.begin(), table.end(), t.lexeme) == table.end()) {
-					table.push_back(t.lexeme);
-					mem[location(t.lexeme)] = stoi(t.lexeme);
-				}
+            instruction->assign_inst.operand1_index = location(t.lexeme);
+            break;
+        }
 
-				instruction->assign_inst.operand2_index = location(t.lexeme);
-				break;
-			}
-			t = lexer.GetToken();// get smeicolon
-		}
-	}
-	return instruction;
+        // Get the next token
+        t = lexer.GetToken();
+
+        // If the token is a SEMICOLON, the assignment is complete
+        if (t.token_type == SEMICOLON) {
+            instruction->assign_inst.op = OPERATOR_NONE;
+            instruction->assign_inst.operand2_index = NULL;
+        }
+        else {
+            // If the token is an operator, set the op field accordingly
+            if (t.token_type == PLUS)
+                instruction->assign_inst.op = OPERATOR_PLUS;
+            else if (t.token_type == MINUS)
+                instruction->assign_inst.op = OPERATOR_MINUS;
+            else if (t.token_type == MULT)
+                instruction->assign_inst.op = OPERATOR_MULT;
+            else if (t.token_type == DIV)
+                instruction->assign_inst.op = OPERATOR_DIV;
+
+            // Get the next token and set the operand2_index
+            t = lexer.GetToken();
+            switch (t.token_type)
+            {
+            case ID:
+                instruction->assign_inst.operand2_index = location(t.lexeme);
+                break;
+            case NUM:
+                // If the lexeme is not in the table, add it and initialize its memory location
+                if (find(table.begin(), table.end(), t.lexeme) == table.end()) {
+                    table.push_back(t.lexeme);
+                    mem[location(t.lexeme)] = stoi(t.lexeme);
+                }
+
+                instruction->assign_inst.operand2_index = location(t.lexeme);
+                break;
+            }
+            // Get the next token (should be a SEMICOLON)
+            t = lexer.GetToken();
+        }
+    }
+
+    // Return the constructed instruction
+    return instruction;
 }
 
 struct InstructionNode * parse_while_stmt() {
