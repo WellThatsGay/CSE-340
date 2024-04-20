@@ -10,9 +10,9 @@ private:
     void syntax_error();
     Token expect(TokenType expected_type);
 public:
-    void parse_program();//
-    void parse_var_sction(); //MIGTH NEED TO CHANGE
-    void parse_id_list();//
+    void parse_program();
+    void parse_var_sction();
+    void parse_id_list();
     void parse_body();
     void parse_stmt_list();
     void parse_stmt();

@@ -48,18 +48,14 @@ void Parser::parse_id_list() {
 
 void Parser::parse_body() {
 	Token t = lexer.GetToken();
-	// if (t.token_type != LBRACE)
-	// 	syntax_error();
+	if (t.token_type != LBRACE)
+		syntax_error();
 
-	// parse_stmt_list();
-
-	// t = lexer.GetToken();
-	// if (t.token_type != RBRACE)
-	// 	syntax_error();
-	expect(LBRACE);
 	parse_stmt_list();
+
 	t = lexer.GetToken();
-	expect(RBRACE);
+	if (t.token_type != RBRACE)
+		syntax_error();
 }
 
 void Parser::parse_stmt_list() {
@@ -200,6 +196,7 @@ void Parser::parse_relop() {
 		syntax_error();
 }
 
+// Function to parse a switch statement
 void Parser::parse_switch_stmt() {
 	Token t = lexer.GetToken();
 	if (t.token_type != SWITCH)
@@ -223,6 +220,7 @@ void Parser::parse_switch_stmt() {
 		syntax_error();
 }
 
+// Function to parse a for statement
 void Parser::parse_for_stmt() {
 	Token t = lexer.GetToken();
 	if (t.token_type != FOR)
@@ -248,6 +246,7 @@ void Parser::parse_for_stmt() {
 	parse_body();
 }
 
+// Function to parse a list of cases
 void Parser::parse_case_list() {
 	parse_case();
 
@@ -255,6 +254,7 @@ void Parser::parse_case_list() {
 		parse_case_list();
 }
 
+// Function to parse a case
 void Parser::parse_case() {
 	Token t = lexer.GetToken();
 	if (t.token_type != CASE)
@@ -271,6 +271,7 @@ void Parser::parse_case() {
 	parse_body();
 }
 
+// Function to parse a default case in a switch statement
 void Parser::parse_default_case() {
 	Token t = lexer.GetToken();
 	if (t.token_type != DEFAULT)
@@ -283,10 +284,12 @@ void Parser::parse_default_case() {
 	parse_body();
 }
 
+// Function to parse a list of inputs
 void Parser::parse_inputs() {
 	parse_num_list();
 }
 
+// Function to parse a list of numbers
 void Parser::parse_num_list() {
 	Token t = lexer.GetToken();
 	if (t.token_type != NUM)

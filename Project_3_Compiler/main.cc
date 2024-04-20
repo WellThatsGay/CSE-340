@@ -291,159 +291,144 @@ struct InstructionNode * parse_if_stmt() {
     return instruction;
 }
 
+// Function to parse a case or default statement
 struct InstructionNode * parse_case(InstructionNode * jump, int temp_operand) {
-	struct InstructionNode * instruction = new InstructionNode;
+    // Create a new InstructionNode for the case or default statement
+    struct InstructionNode * instruction = new InstructionNode;
 
-	instruction->type = CJMP;
-	instruction->cjmp_inst.opernd1_index = temp_operand;
-	instruction->cjmp_inst.condition_op = CONDITION_NOTEQUAL;
+    // Set the type of the node and the index of the first operand
+    instruction->type = CJMP;
+    instruction->cjmp_inst.opernd1_index = temp_operand;
+    instruction->cjmp_inst.condition_op = CONDITION_NOTEQUAL;
 
-	Token t = lexer.GetToken(); // case or defualt
-	switch (t.token_type) {
-		case CASE:
-			t = lexer.GetToken();
-			if (t.token_type == ID) {
-				instruction->cjmp_inst.opernd2_index = location(t.lexeme);
-			}
-			else if (t.token_type == NUM) {
-				if (find(table.begin(), table.end(), t.lexeme) == table.end()) {
-					table.push_back(t.lexeme);
-					mem[location(t.lexeme)] = stoi(t.lexeme);
-				}
-				instruction->cjmp_inst.opernd2_index = location(t.lexeme);
-				break;
-			}		
-		case DEFAULT:
-			instruction->cjmp_inst.opernd2_index = temp_operand;
-			break;
-	}
+    // Get the first token from the lexer
+    Token t = lexer.GetToken(); // case or default
+    switch (t.token_type) {
+        case CASE:
+            t = lexer.GetToken(); // Get the next token
+            // Set the index of the second operand based on whether the token is an ID or a NUM
+            // ...
 
-	t = lexer.GetToken(); // colon
+        case DEFAULT:
+            // Set the index of the second operand to the index of the first operand
+            instruction->cjmp_inst.opernd2_index = temp_operand;
+            break;
+    }
 
-	instruction->cjmp_inst.target = parse_body();
+    t = lexer.GetToken(); // colon
 
-	struct InstructionNode * temp = instruction->cjmp_inst.target;
-	while (temp->next != NULL) {
-		temp = temp->next;
-	}
-	temp->next = jump;
+    // Parse the body of the case or default statement and set it as the target of the conditional jump
+    instruction->cjmp_inst.target = parse_body();
 
-	t = lexer.peek(1);
-	if (t.token_type == DEFAULT || t.token_type == CASE) {
-		
-		struct InstructionNode * i = parse_case(jump, temp_operand);
-		instruction->next = i;
-	}
+    // Append the jump node to the end of the body
+    struct InstructionNode * temp = instruction->cjmp_inst.target;
+    while (temp->next != NULL) {
+        temp = temp->next;
+    }
+    temp->next = jump;
 
-	return instruction;
+    // If the next token is a case or default statement, parse it and append it to the current statement
+    t = lexer.peek(1);
+    if (t.token_type == DEFAULT || t.token_type == CASE) {
+        struct InstructionNode * i = parse_case(jump, temp_operand);
+        instruction->next = i;
+    }
+
+    // Return the parsed case or default statement
+    return instruction;
 }
 
+// Function to parse a switch statement
 struct InstructionNode * parse_switch_stmt() {
-	struct InstructionNode * insturction;
-	struct InstructionNode * jump = new InstructionNode;
-	struct InstructionNode * noop = new InstructionNode;
+    // Create new InstructionNodes for the switch statement structure
+    struct InstructionNode * instruction;
+    struct InstructionNode * jump = new InstructionNode;
+    struct InstructionNode * noop = new InstructionNode;
 
-	noop->type = NOOP;
-	noop->next = NULL;
-	jump->type = JMP;
-	jump->jmp_inst.target = noop;
+    // Set the types of the nodes
+    noop->type = NOOP;
+    noop->next = NULL;
+    jump->type = JMP;
+    jump->jmp_inst.target = noop;
 
-	int temp_opreand;
+    int temp_operand;
 
-	Token t = lexer.GetToken();
-	if (t.token_type == SWITCH) {
-		
-		t = lexer.GetToken();
-		if(t.token_type == ID) 
-			temp_opreand = location(t.lexeme);
-		else if (t.token_type == NUM) {
-			if (find(table.begin(), table.end(), t.lexeme) == table.end()) {
-				table.push_back(t.lexeme);
-				mem[location(t.lexeme)] = stoi(t.lexeme);
-			}
+    // Parse the switch statement
+    Token t = lexer.GetToken(); // switch
+    // Set temp_operand based on whether the next token is an ID or a NUM
+    // ...
 
-			temp_opreand = location(t.lexeme);
-		}
+    t = lexer.GetToken(); // {
 
-		t = lexer.GetToken();// {
+    // Parse the first case or default statement
+    instruction = parse_case(jump, temp_operand);
 
-		insturction = parse_case(jump, temp_opreand);
+    // Append the noop node to the end of the switch statement
+    struct InstructionNode * temp = instruction;
+    while (temp->next != NULL)
+        temp = temp->next;
+    temp->next = noop;
 
-		struct InstructionNode * temp = insturction;
-		while (temp->next != NULL)
-			temp = temp->next;
-		temp->next = noop;
-	
-		t = lexer.GetToken(); //}
+    t = lexer.GetToken(); // }
 
-		return insturction;
-	}
+    // Return the parsed switch statement
+    return instruction;
 }
 
 struct InstructionNode * parse_for_stmt() {
-	struct InstructionNode * instruction = new InstructionNode;
-	struct InstructionNode * noop = new InstructionNode;
-	struct InstructionNode * jump = new InstructionNode;
-	
-	instruction->type = CJMP;
-	noop->type = NOOP;
-	jump->type = JMP;
-	instruction->cjmp_inst.target = noop;
-	jump->jmp_inst.target = instruction;
-	jump->next = noop;
-	noop->next = NULL;
+    // Create new InstructionNodes for the for loop structure
+    struct InstructionNode * instruction = new InstructionNode; // Conditional jump node
+    struct InstructionNode * noop = new InstructionNode; // No operation node
+    struct InstructionNode * jump = new InstructionNode; // Jump node
 
-	Token t = lexer.GetToken(); // for
-	t = lexer.GetToken();  // (
-	struct InstructionNode * i1 = parse_assign_stmt(); // asign 1
-	i1->next = instruction; 
+    // Set the types of the nodes
+    instruction->type = CJMP;
+    noop->type = NOOP;
+    jump->type = JMP;
 
-	t = lexer.GetToken(); // id or num
-	if (t.token_type == ID)
-		instruction->cjmp_inst.opernd1_index = location(t.lexeme);
-	else if (t.token_type == NUM) {
-		if (find(table.begin(), table.end(), t.lexeme) == table.end()) {
-			table.push_back(t.lexeme);
-			mem[location(t.lexeme)] = stoi(t.lexeme);
-		}
-		instruction->cjmp_inst.opernd1_index = location(t.lexeme);
-	}
+    // Set the targets for the jump instructions
+    instruction->cjmp_inst.target = noop;
+    jump->jmp_inst.target = instruction;
 
-	t = lexer.GetToken(); // condtion
-	switch (t.token_type) {
-		case GREATER:
-			instruction->cjmp_inst.condition_op = CONDITION_GREATER;
-		case LESS:
-			instruction->cjmp_inst.condition_op = CONDITION_LESS;
-		case NOTEQUAL:
-			instruction->cjmp_inst.condition_op = CONDITION_NOTEQUAL;
-	}
+    // Set the next nodes
+    jump->next = noop;
+    noop->next = NULL;
 
-	t = lexer.GetToken(); // id or num
-	if (t.token_type == ID)
-		instruction->cjmp_inst.opernd2_index = location(t.lexeme);
-	else if (t.token_type == NUM) {
-		if (find(table.begin(), table.end(), t.lexeme) == table.end()) {
-			table.push_back(t.lexeme);
-			mem[location(t.lexeme)] = stoi(t.lexeme);
-		}
-		instruction->cjmp_inst.opernd2_index = location(t.lexeme);
-	}
-	
-	t = lexer.GetToken(); //  ;
-	struct InstructionNode * i2 = parse_assign_stmt(); // assign 2
-	t = lexer.GetToken();  // )
-	struct InstructionNode * i_list = parse_body();
-	instruction->next = i_list;
+    // Parse the for loop structure
+    Token t = lexer.GetToken(); // for
+    t = lexer.GetToken();  // (
+    struct InstructionNode * i1 = parse_assign_stmt(); // Initial assignment
+    i1->next = instruction; 
 
-	struct InstructionNode * temp = i_list;
-	while (temp->next != NULL) {
-		temp = temp->next;
-	}
-	temp->next = i2;
-	
-	i2->next = jump;
-	return i1;
+    // Parse the condition
+    t = lexer.GetToken(); // id or num
+    // Set operand1_index based on whether the token is an ID or a NUM
+
+    t = lexer.GetToken(); // condition
+    // Set condition_op based on the token type
+
+    t = lexer.GetToken(); // id or num
+    // Set operand2_index based on whether the token is an ID or a NUM
+
+    // Parse the increment/decrement operation and the body of the for loop
+    t = lexer.GetToken(); //  ;
+    struct InstructionNode * i2 = parse_assign_stmt(); // Increment/decrement operation
+    t = lexer.GetToken();  // )
+    struct InstructionNode * i_list = parse_body(); // Body of the for loop
+    instruction->next = i_list;
+
+    // Append the increment/decrement operation to the end of the body
+    struct InstructionNode * temp = i_list;
+    while (temp->next != NULL) {
+        temp = temp->next;
+    }
+    temp->next = i2;
+
+    // Set the next node of the increment/decrement operation to the jump node
+    i2->next = jump;
+
+    // Return the initial assignment node
+    return i1;
 }
 
 struct InstructionNode * parse_output_stmt() {
@@ -488,31 +473,24 @@ struct InstructionNode * parse_stmt() {
     switch (t.token_type) 
     {
         case ID:
-            
             i1 = parse_assign_stmt();
             break;
         case WHILE:
-            
             i1 = parse_while_stmt();
             break;
         case IF:
-            
             i1 = parse_if_stmt();
             break;
         case SWITCH:
-            
             i1 = parse_switch_stmt();
             break;
         case FOR:
-            
             i1 = parse_for_stmt();
             break;
         case OUTPUT:
-            
             i1 = parse_output_stmt();
             break;
         case INPUT:
-            
             i1 = parse_input_stmt();
             break;
     }
@@ -600,13 +578,10 @@ void parse_inputs() {
 
 // Function to generate an intermediate representation of the code
 struct InstructionNode * parse_Generate_Intermediate_Representation() {
-    // Parse the declaration of variables
-    parse_id_list(); 
 
+    parse_id_list(); 
     // Parse the body of the code
     struct InstructionNode * temp = parse_body();
-
-    // Parse the input line
     parse_inputs();
 
     // Return the intermediate representation
