@@ -2,12 +2,12 @@
 #include "parser.h"
 #include "lexer.h"
 
-/*Christopher Harris*/
-
 using namespace std;
 
+/*Christopher Harris*/
+
 void Parser::syntax_error() {
-	cout << "SYNTAX ERROR !!!\n";
+	cout << "Epsilon is not a token !!!\n";
 	exit(1);
 }
 
@@ -22,17 +22,14 @@ void Parser::parse_program() {
 	parse_var_sction();
 	parse_body();
 	parse_inputs();
-
-	if (lexer.peek(1).token_type != END_OF_FILE)
-		syntax_error();
+	expect(END_OF_FILE);
+	
 }
 
 void Parser::parse_var_sction() {
 	parse_id_list();
-
-	Token t = lexer.GetToken();
-	if (t.token_type != SEMICOLON)
-		syntax_error();
+	expect(SEMICOLON);
+	
 }
 
 void Parser::parse_id_list() {
@@ -44,18 +41,16 @@ void Parser::parse_id_list() {
 		t = lexer.GetToken();
 		parse_id_list();
 	}
+	
 }
 
 void Parser::parse_body() {
 	Token t = lexer.GetToken();
-	if (t.token_type != LBRACE)
-		syntax_error();
-
+	
+	expect(LBRACE);
 	parse_stmt_list();
-
 	t = lexer.GetToken();
-	if (t.token_type != RBRACE)
-		syntax_error();
+	expect(RBRACE);
 }
 
 void Parser::parse_stmt_list() {
@@ -104,10 +99,8 @@ void Parser::parse_assign_stmt() {
 		
 		parse_primary();
 	}
-
-	t = lexer.GetToken();
-	if (t.token_type != SEMICOLON)
-		syntax_error();
+	expect(SEMICOLON);
+	
 }
 
 void Parser::parse_expr() {
@@ -161,19 +154,16 @@ void Parser::parse_input_stmt() {
 }
 
 void Parser::parse_while_stmt() {
-	Token t = lexer.GetToken();
-	if (t.token_type != WHILE)
-		syntax_error();
-
+	
+	expect(WHILE);
 	parse_condition();
 	parse_body();
 }
 
 void Parser::parse_if_stmt() {
-	Token t = lexer.GetToken();
-	if (t.token_type != IF)
-		syntax_error();
+	
 
+	expect(IF);
 	parse_condition();
 	parse_body();
 }
@@ -196,31 +186,19 @@ void Parser::parse_relop() {
 		syntax_error();
 }
 
-// Function to parse a switch statement
 void Parser::parse_switch_stmt() {
 	Token t = lexer.GetToken();
-	if (t.token_type != SWITCH)
-		syntax_error();
-
-	t = lexer.GetToken();
-	if (t.token_type != ID)
-		syntax_error();
-
-	t = lexer.GetToken();
-	if (t.token_type != LBRACE)
-		syntax_error();
-
+	
+	expect(SWITCH);
+	expect(ID);
+	expect(LBRACE);
 	parse_case();
 
 	if (lexer.peek(1).token_type == DEFAULT)
 		parse_default_case();
-
-	t = lexer.GetToken();
-	if (t.token_type != RBRACE)
-		syntax_error();
+	expect(RBRACE);
 }
 
-// Function to parse a for statement
 void Parser::parse_for_stmt() {
 	Token t = lexer.GetToken();
 	if (t.token_type != FOR)
@@ -246,7 +224,6 @@ void Parser::parse_for_stmt() {
 	parse_body();
 }
 
-// Function to parse a list of cases
 void Parser::parse_case_list() {
 	parse_case();
 
@@ -254,47 +231,31 @@ void Parser::parse_case_list() {
 		parse_case_list();
 }
 
-// Function to parse a case
 void Parser::parse_case() {
-	Token t = lexer.GetToken();
-	if (t.token_type != CASE)
-		syntax_error();
+	
 
-	t = lexer.GetToken();
-	if (t.token_type != NUM)
-		syntax_error();
-
-	t = lexer.GetToken();
-	if (t.token_type != COLON)
-		syntax_error();
-
+	expect(CASE);
+	expect(NUM);
+	expect(COLON);
 	parse_body();
 }
 
-// Function to parse a default case in a switch statement
 void Parser::parse_default_case() {
-	Token t = lexer.GetToken();
-	if (t.token_type != DEFAULT)
-		syntax_error();
+	
 
-	t = lexer.GetToken();
-	if (t.token_type != COLON)
-		syntax_error();
 
+	expect(DEFAULT);
+	expect(COLON);
 	parse_body();
 }
 
-// Function to parse a list of inputs
 void Parser::parse_inputs() {
 	parse_num_list();
 }
 
-// Function to parse a list of numbers
 void Parser::parse_num_list() {
-	Token t = lexer.GetToken();
-	if (t.token_type != NUM)
-		syntax_error();
-
+	
+	expect(NUM);
 	if (lexer.peek(1).token_type == NUM)
 		parse_num_list();
 }
