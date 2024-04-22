@@ -19,6 +19,7 @@ int location(string str) {
         if (table[i] == str)
             return i;
     }
+    return -1; // Add a default return value if the string is not found
 }
 
 
@@ -58,8 +59,9 @@ struct InstructionNode * parse_assign_stmt() {
              case END_OF_FILE:
             // Handle the END_OF_FILE case appropriately
             // This might include logging an error, cleaning up resources, or breaking the loop
-            delete instParseAssignStmt;  // Clean up before returning
-            return nullptr;  // Return a null pointer to indicate an error
+                delete instParseAssignStmt;  // Clean up before returning
+                return nullptr;  // Return a null pointer to indicate an error
+                break;
 
         default:
             // Optionally handle any other unanticipated token types
@@ -69,7 +71,7 @@ struct InstructionNode * parse_assign_stmt() {
         t = lexer.GetToken();  
         if (t.token_type == SEMICOLON) {
             instParseAssignStmt->assign_inst.op = OPERATOR_NONE;
-            instParseAssignStmt->assign_inst.opernd2_index = NULL;
+            instParseAssignStmt->assign_inst.opernd2_index = 0;
         } else {
             // Determine the operator and get the second operand
             if (t.token_type == PLUS)
@@ -94,6 +96,12 @@ struct InstructionNode * parse_assign_stmt() {
                     }
                     instParseAssignStmt->assign_inst.opernd2_index = location(t.lexeme);
                     break;
+                case END_OF_FILE:
+            // Handle the END_OF_FILE case appropriately
+            // This might include logging an error, cleaning up resources, or breaking the loop
+                delete instParseAssignStmt;  // Clean up before returning
+                return nullptr;  // Return a null pointer to indicate an error
+                break;
             }
             t = lexer.GetToken();  
         }
@@ -262,8 +270,15 @@ struct InstructionNode * parse_case(InstructionNode * jump, int temp_operand) {
                 instParseCase->cjmp_inst.opernd2_index = location(t.lexeme);
             }
             break;
+
+        case END_OF_FILE:
+            // Handle the END_OF_FILE case appropriately
+            // This might include logging an error, cleaning up resources, or breaking the loop
+              return nullptr;  // Return a null pointer to indicate an error
+              break;
+
         case DEFAULT:
-            
+            printf ("Default case for testing\n" );
             //instParseCase->cjmp_inst.opernd2_index = temp_operand;
             break;
     }
@@ -322,20 +337,31 @@ struct InstructionNode * parse_switch_stmt() {
         instSwitchStmt = parse_case(jump, temp_operand);
 
         // Ensure instSwitchStmt is not nullptr before linking the noop node
-        if (instSwitchStmt != nullptr) {
+       if (instSwitchStmt != nullptr) {
             struct InstructionNode * temp = instSwitchStmt;
-            while (temp->next != NULL) {
+            
+            while (temp != NULL && temp->next != NULL) {
+                
                 temp = temp->next;
+
             }
-            temp->next = noop;
+            if (temp != NULL) {
+                
+                temp->next = noop;
+            } else {
+                // Handle the case where temp is nullptr, if necessary
+                printf("This is a test if temp is nullptr\n");
+            }
         } else {
             // Handle the case where instSwitchStmt is nullptr, if necessary
+            printf("This is a test if the instSwitchStmt is nullptr\n");
         }
 
-        t = lexer.GetToken();  // Potentially redundant and could be removed if not needed
+        t = lexer.GetToken(); 
 
         return instSwitchStmt;
     }
+    //printf("%p", instSwitchStmt);
     return nullptr;  // Return nullptr if the SWITCH token is not found
 }
 
